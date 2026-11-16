@@ -1,0 +1,91 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% load mathfilters %}
+{% block title %}Feed · Photo App{% endblock %}
+{% block body %}
+<div class="max-w-lg mx-auto mt-8 space-y-8">
+    {% for post in posts %}
+    <article id="post-{{ post.id }}" class="bg-white rounded-xl shadow overflow-hidden">
+        <header class="flex items-center gap-3 px-4 py-3">
+            {% include 'users/_avatar.html' with user_obj=post.user %}
+            <div>
+                <div class="font-semibold text-indigo-600">{{ post.user.username }}</div>
+                <div class="text-xs text-gray-400">{{ post.created|date:"M j, Y" }}</div>
+            </div>
+        </header>
+
+        <img class="w-full max-h-[600px] object-cover bg-gray-100" src="{{ post.image.url }}" alt="{{ post.title }}">
+
+        <div class="px-4 pt-3 flex items-center gap-4">
+            <button type="button" class="btn-like cursor-pointer" data-post="{{ post.id }}" aria-pressed="{% if post.id in liked_ids %}true{% else %}false{% endif %}" aria-label="Like">
+                <img class="w-6 h-6" src="{% if post.id in liked_ids %}{% static 'users/images/redlike.png' %}{% else %}{% static 'users/images/whitelike.png' %}{% endif %}" alt="">
+            </button>
+            <label for="comment-{{ post.id }}" class="cursor-pointer"><img class="w-6 h-6" src="{% static 'users/images/comment.png' %}" alt="Comment"></label>
+            <button type="button" class="btn-share cursor-pointer" data-post="{{ post.id }}" aria-label="Copy link"><img class="w-6 h-6" src="{% static 'users/images/share.png' %}" alt=""></button>
+        </div>
+
+        <div class="px-4 pt-2 text-sm font-semibold like-text" data-post="{{ post.id }}">
+            {% with count=post.liked_by.count %}
+            {% if count == 1 %}Liked by {{ post.liked_by.first }}
+            {% elif count > 1 %}Liked by {{ post.liked_by.first }} and {{ count|sub:1 }} other{{ count|sub:1|pluralize }}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="px-4 py-2">
+            <div class="font-bold">{{ post.title }}</div>
+            {% if post.caption %}<p class="text-gray-700 text-sm">{{ post.caption }}</p>{% endif %}
+        </div>
+
+        {% if post.comments.all %}
+        <div class="px-4 pb-2 space-y-1 text-sm">
+            {% for comment in post.comments.all %}
+            <div><span class="font-semibold">{{ comment.posted_by }}</span> {{ comment.body }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="field flex gap-2 px-4 py-3 border-t border-gray-100">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ post.id }}">
+            <input type="text" name="body" id="comment-{{ post.id }}" maxlength="100" required placeholder="Add a comment...">
+            <button class="text-indigo-600 font-semibold px-2 cursor-pointer" type="submit">Post</button>
+        </form>
+    </article>
+    {% empty %}
+    <div class="text-center text-gray-500 mt-16">
+        <p class="mb-4">No posts yet.</p>
+        <a class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg px-4 py-2" href="{% url 'create' %}">Share the first photo</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    const CSRF_TOKEN = "{{ csrf_token }}";
+    const RED = "{% static 'users/images/redlike.png' %}";
+    const WHITE = "{% static 'users/images/whitelike.png' %}";
+    document.querySelectorAll('.btn-like').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+            const body = new URLSearchParams({ post_id: btn.dataset.post });
+            const res = await fetch("{% url 'like' %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF_TOKEN, 'X-Requested-With': 'XMLHttpRequest' },
+                body: body,
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            btn.querySelector('img').src = data.liked ? RED : WHITE;
+            btn.setAttribute('aria-pressed', data.liked);
+            const text = document.querySelector('.like-text[data-post="' + btn.dataset.post + '"]');
+            text.textContent = data.count ? (data.count + (data.count === 1 ? ' like' : ' likes')) : '';
+        });
+    });
+    document.querySelectorAll('.btn-share').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const url = location.origin + location.pathname + '#post-' + btn.dataset.post;
+            navigator.clipboard && navigator.clipboard.writeText(url);
+            btn.title = 'Link copied';
+        });
+    });
+</script>
+{% endblock %}

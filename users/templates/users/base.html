@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Photo App{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'users/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'users/style.css' %}">
+    <link rel="icon" href="{% static 'users/images/social.png' %}">
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+    <nav class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a class="flex items-center gap-2" href="{% url 'feed' %}">
+                <img class="h-8 w-8" src="{% static 'users/images/social.png' %}" alt="">
+                <span class="font-semibold text-lg text-gray-700">Photo App</span>
+            </a>
+            <div class="flex items-center gap-1 text-sm font-semibold text-gray-600">
+                {% if request.user.is_authenticated %}
+                    <a class="px-3 py-2 rounded hover:bg-gray-100" href="{% url 'feed' %}">Feed</a>
+                    <a class="px-3 py-2 rounded hover:bg-gray-100" href="{% url 'create' %}">New post</a>
+                    <a class="px-3 py-2 rounded hover:bg-gray-100" href="{% url 'index' %}">My posts</a>
+                    <a class="px-3 py-2 rounded hover:bg-gray-100" href="{% url 'edit' %}">Profile</a>
+                    <form method="post" action="{% url 'logout' %}" class="inline">
+                        {% csrf_token %}
+                        <button class="px-3 py-2 rounded hover:bg-gray-100 cursor-pointer" type="submit">Logout</button>
+                    </form>
+                {% else %}
+                    <a class="px-3 py-2 rounded hover:bg-gray-100" href="{% url 'login' %}">Login</a>
+                    <a class="px-3 py-2 rounded bg-indigo-500 text-white hover:bg-indigo-600" href="{% url 'register' %}">Sign up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="max-w-xl mx-auto mt-4 px-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="px-4 pb-16">
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

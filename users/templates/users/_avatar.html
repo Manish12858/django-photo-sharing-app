@@ -1,0 +1,1 @@
+{% load static %}{% if user_obj.profile.photo %}<img class="h-10 w-10 rounded-full object-cover" src="{{ user_obj.profile.photo.url }}" alt="">{% else %}<div class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold uppercase">{{ user_obj.username|first }}</div>{% endif %}

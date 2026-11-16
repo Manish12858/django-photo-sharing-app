@@ -1,0 +1,22 @@
+{% extends 'users/base.html' %}
+{% block title %}Edit profile · Photo App{% endblock %}
+{% block body %}
+<div class="max-w-md mx-auto mt-12 bg-white rounded-xl shadow p-8">
+    <h1 class="text-2xl font-bold mb-6">Edit profile</h1>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        {% for field in user_form %}
+        <div class="field">
+            <label class="block text-sm font-semibold mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}{{ field.errors }}
+        </div>
+        {% endfor %}
+        <div class="field">
+            <label class="block text-sm font-semibold mb-1" for="{{ profile_form.photo.id_for_label }}">Profile photo</label>
+            {{ profile_form.photo }}{{ profile_form.photo.errors }}
+        </div>
+        <button class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2" type="submit">Save</button>
+    </form>
+    <p class="mt-6 text-sm"><a class="text-indigo-600 hover:underline" href="{% url 'password_change' %}">Change password</a></p>
+</div>
+{% endblock %}

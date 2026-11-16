@@ -1,0 +1,40 @@
+{% extends 'users/base.html' %}
+{% block title %}My posts · Photo App{% endblock %}
+{% block body %}
+<div class="max-w-3xl mx-auto mt-10">
+    <div class="flex items-center gap-4 mb-8">
+        {% if profile.photo %}
+        <img class="h-20 w-20 rounded-full object-cover" src="{{ profile.photo.url }}" alt="">
+        {% else %}
+        <div class="h-20 w-20 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-3xl font-bold uppercase">{{ request.user.username|first }}</div>
+        {% endif %}
+        <div>
+            <h1 class="text-2xl font-bold">{{ request.user.get_full_name|default:request.user.username }}</h1>
+            <p class="text-gray-500">@{{ request.user.username }} · {{ posts|length }} post{{ posts|length|pluralize }}</p>
+        </div>
+        <a class="ml-auto bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg px-4 py-2 text-sm" href="{% url 'create' %}">New post</a>
+    </div>
+
+    {% if posts %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {% for post in posts %}
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <img class="w-full aspect-square object-cover" src="{{ post.image.url }}" alt="{{ post.title }}">
+            <div class="p-3">
+                <div class="font-semibold truncate">{{ post.title }}</div>
+                <div class="text-xs text-gray-500 flex justify-between items-center mt-1">
+                    <span>♥ {{ post.liked_by.count }} · 💬 {{ post.comments.count }}</span>
+                    <form method="post" action="{% url 'post_delete' post.id %}" onsubmit="return confirm('Delete this post?');">
+                        {% csrf_token %}
+                        <button class="text-red-500 hover:underline cursor-pointer" type="submit">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500 mt-16">You haven't posted anything yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
