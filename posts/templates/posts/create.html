@@ -1,33 +1,21 @@
-{% extends 'users/base.html' %}
-{% block title %}New post · Photo App{% endblock %}
+{% extends 'base.html' %}
+{% block title %}New post{% endblock %}
 {% block body %}
-<div class="max-w-lg mx-auto mt-12 bg-white rounded-xl shadow p-8">
-    <h1 class="text-2xl font-bold mb-6">📸 Create a post</h1>
-    <form method="post" enctype="multipart/form-data" class="space-y-4">
+<div class="mx-auto mt-10 max-w-lg rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <h1 class="mb-6 text-2xl font-bold">Share a photo</h1>
+    <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="field">
-            <label class="block text-sm font-semibold mb-1" for="{{ form.title.id_for_label }}">Title</label>
-            {{ form.title }}{{ form.title.errors }}
-        </div>
-        <div class="field">
-            <label class="block text-sm font-semibold mb-1" for="{{ form.image.id_for_label }}">Image</label>
-            {{ form.image }}{{ form.image.errors }}
-            <img id="preview" class="hidden mt-3 rounded-lg max-h-72 object-contain" alt="">
-        </div>
-        <div class="field">
-            <label class="block text-sm font-semibold mb-1" for="{{ form.caption.id_for_label }}">Caption</label>
-            {{ form.caption }}{{ form.caption.errors }}
-        </div>
-        <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2">Publish</button>
+        {% include 'partials/form_fields.html' with form=form %}
+        <img id="preview" class="hidden max-h-80 w-full rounded-xl object-contain" alt="Preview of the selected photo">
+        <button type="submit" class="w-full cursor-pointer rounded-lg bg-rose-500 py-2.5 font-semibold text-white hover:bg-rose-600">Publish</button>
     </form>
 </div>
 <script>
-    document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        const img = document.getElementById('preview');
-        if (file) { img.src = URL.createObjectURL(file); img.classList.remove('hidden'); }
-        else { img.classList.add('hidden'); }
+    document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('preview');
+        if (file) { preview.src = URL.createObjectURL(file); preview.classList.remove('hidden'); }
+        else { preview.classList.add('hidden'); }
     });
 </script>
 {% endblock %}

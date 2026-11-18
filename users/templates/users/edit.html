@@ -1,22 +1,14 @@
-{% extends 'users/base.html' %}
-{% block title %}Edit profile · Photo App{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Edit profile{% endblock %}
 {% block body %}
-<div class="max-w-md mx-auto mt-12 bg-white rounded-xl shadow p-8">
-    <h1 class="text-2xl font-bold mb-6">Edit profile</h1>
-    <form method="post" enctype="multipart/form-data" class="space-y-4">
+<div class="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <h1 class="mb-6 text-2xl font-bold">Edit profile</h1>
+    <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
         {% csrf_token %}
-        {% for field in user_form %}
-        <div class="field">
-            <label class="block text-sm font-semibold mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}{{ field.errors }}
-        </div>
-        {% endfor %}
-        <div class="field">
-            <label class="block text-sm font-semibold mb-1" for="{{ profile_form.photo.id_for_label }}">Profile photo</label>
-            {{ profile_form.photo }}{{ profile_form.photo.errors }}
-        </div>
-        <button class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2" type="submit">Save</button>
+        {% include 'partials/form_fields.html' with form=user_form %}
+        {% include 'partials/form_fields.html' with form=profile_form %}
+        <button type="submit" class="w-full cursor-pointer rounded-lg bg-rose-500 py-2.5 font-semibold text-white hover:bg-rose-600">Save</button>
     </form>
-    <p class="mt-6 text-sm"><a class="text-indigo-600 hover:underline" href="{% url 'password_change' %}">Change password</a></p>
+    <p class="mt-6 text-sm"><a href="{% url 'password_change' %}" class="text-rose-500 hover:underline">Change password</a></p>
 </div>
 {% endblock %}

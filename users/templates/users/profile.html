@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ person.get_full_name|default:person.username }} (@{{ person.username }}){% endblock %}
+{% block body %}
+<div class="mx-auto mt-10 max-w-4xl">
+    <header class="mb-10 flex flex-col items-center gap-6 sm:flex-row sm:items-start">
+        {% include 'partials/avatar.html' with person=person size='h-28 w-28 text-4xl' %}
+        <div class="flex-1 text-center sm:text-left">
+            <div class="flex flex-col items-center gap-3 sm:flex-row">
+                <h1 class="text-2xl font-bold">{{ person.username }}</h1>
+                {% if is_own_profile %}
+                <a href="{% url 'edit' %}" class="rounded-lg border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold hover:bg-slate-50">Edit profile</a>
+                {% elif user.is_authenticated %}
+                <form method="post" action="{% url 'follow' person.username %}">
+                    {% csrf_token %}
+                    {% if is_following %}
+                    <button type="submit" class="cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold hover:bg-slate-50">Following ✓</button>
+                    {% else %}
+                    <button type="submit" class="cursor-pointer rounded-lg bg-rose-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-rose-600">Follow</button>
+                    {% endif %}
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="rounded-lg bg-rose-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-rose-600">Follow</a>
+                {% endif %}
+            </div>
+            <ul class="mt-4 flex justify-center gap-6 text-sm sm:justify-start" data-testid="profile-stats">
+                <li><span class="font-bold">{{ posts|length }}</span> post{{ posts|length|pluralize }}</li>
+                <li><span class="font-bold" data-testid="follower-count">{{ person.follower_count }}</span> follower{{ person.follower_count|pluralize }}</li>
+                <li><span class="font-bold">{{ person.following_count }}</span> following</li>
+            </ul>
+            {% if person.get_full_name %}<p class="mt-4 font-semibold">{{ person.get_full_name }}</p>{% endif %}
+            {% if person.profile.bio %}<p class="text-slate-600">{{ person.profile.bio }}</p>{% endif %}
+        </div>
+    </header>
+
+    {% if posts %}
+    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+        {% for post in posts %}
+        <a href="{{ post.get_absolute_url }}" class="group relative block overflow-hidden rounded-xl bg-slate-200" data-testid="profile-post">
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="aspect-square w-full object-cover transition group-hover:scale-105">
+            <span class="absolute inset-0 flex items-center justify-center gap-4 bg-slate-900/50 text-sm font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                <span>♥ {{ post.like_count }}</span><span>💬 {{ post.comment_count }}</span>
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+        {% if is_own_profile %}
+        <p>You haven't shared any photos yet.</p>
+        <a href="{% url 'create' %}" class="mt-4 inline-block rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-600">Share your first photo</a>
+        {% else %}
+        <p>{{ person.username }} hasn't shared any photos yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

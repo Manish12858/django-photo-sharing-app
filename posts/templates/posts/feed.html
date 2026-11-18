@@ -1,86 +1,63 @@
-{% extends 'users/base.html' %}
-{% load static %}
-{% block title %}Feed · Photo App{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Feed{% endblock %}
 {% block body %}
-<div class="max-w-lg mx-auto mt-8 space-y-8">
-    {% for post in posts %}
-    <article id="post-{{ post.id }}" class="bg-white rounded-xl shadow overflow-hidden">
-        <header class="flex items-center gap-3 px-4 py-3">
-            {% include 'users/_avatar.html' with user_obj=post.user %}
-            <div>
-                <div class="font-semibold text-indigo-600">{{ post.user.username }}</div>
-                <div class="text-xs text-gray-400">{{ post.created|date:"M j, Y" }}</div>
+<div class="mx-auto mt-6 grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,36rem)_1fr]">
+    <section class="mx-auto w-full max-w-xl">
+        <div class="mb-6 flex rounded-xl bg-white p-1 text-sm font-semibold shadow-sm" role="tablist">
+            <a href="?tab=following" role="tab" aria-selected="{% if tab == 'following' %}true{% else %}false{% endif %}"
+               class="flex-1 rounded-lg py-2 text-center {% if tab == 'following' %}bg-rose-500 text-white{% else %}text-slate-500 hover:bg-slate-50{% endif %}">Following</a>
+            <a href="?tab=all" role="tab" aria-selected="{% if tab == 'all' %}true{% else %}false{% endif %}"
+               class="flex-1 rounded-lg py-2 text-center {% if tab == 'all' %}bg-rose-500 text-white{% else %}text-slate-500 hover:bg-slate-50{% endif %}">Explore</a>
+        </div>
+
+        <div class="space-y-8">
+            {% for post in page %}
+                {% include 'partials/post_card.html' %}
+            {% empty %}
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                {% if tab == 'following' %}
+                <p class="text-lg font-semibold">Your feed is empty</p>
+                <p class="mt-1 text-slate-500">Follow people to see their photos here.</p>
+                <a href="?tab=all" class="mt-4 inline-block rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-600">Explore photos</a>
+                {% else %}
+                <p class="text-lg font-semibold">No photos yet</p>
+                <a href="{% url 'create' %}" class="mt-4 inline-block rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-600">Share the first photo</a>
+                {% endif %}
             </div>
-        </header>
-
-        <img class="w-full max-h-[600px] object-cover bg-gray-100" src="{{ post.image.url }}" alt="{{ post.title }}">
-
-        <div class="px-4 pt-3 flex items-center gap-4">
-            <button type="button" class="btn-like cursor-pointer" data-post="{{ post.id }}" aria-pressed="{% if post.id in liked_ids %}true{% else %}false{% endif %}" aria-label="Like">
-                <img class="w-6 h-6" src="{% if post.id in liked_ids %}{% static 'users/images/redlike.png' %}{% else %}{% static 'users/images/whitelike.png' %}{% endif %}" alt="">
-            </button>
-            <label for="comment-{{ post.id }}" class="cursor-pointer"><img class="w-6 h-6" src="{% static 'users/images/comment.png' %}" alt="Comment"></label>
-            <button type="button" class="btn-share cursor-pointer" data-post="{{ post.id }}" aria-label="Copy link"><img class="w-6 h-6" src="{% static 'users/images/share.png' %}" alt=""></button>
-        </div>
-
-        <div class="px-4 pt-2 text-sm font-semibold like-text" data-post="{{ post.id }}">
-            {% with count=post.liked_by.count %}{% if count %}{{ count }} like{{ count|pluralize }}{% endif %}{% endwith %}
-        </div>
-
-        <div class="px-4 py-2">
-            <div class="font-bold">{{ post.title }}</div>
-            {% if post.caption %}<p class="text-gray-700 text-sm">{{ post.caption }}</p>{% endif %}
-        </div>
-
-        {% if post.comments.all %}
-        <div class="px-4 pb-2 space-y-1 text-sm">
-            {% for comment in post.comments.all %}
-            <div><span class="font-semibold">{{ comment.posted_by }}</span> {{ comment.body }}</div>
             {% endfor %}
         </div>
+
+        {% if page.paginator.num_pages > 1 %}
+        <nav class="mt-8 flex items-center justify-between text-sm font-semibold" aria-label="Pagination">
+            {% if page.has_previous %}<a href="?tab={{ tab }}&page={{ page.previous_page_number }}" class="rounded-lg bg-white px-4 py-2 shadow-sm hover:bg-slate-50">← Newer</a>{% else %}<span></span>{% endif %}
+            <span class="text-slate-500">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}<a href="?tab={{ tab }}&page={{ page.next_page_number }}" class="rounded-lg bg-white px-4 py-2 shadow-sm hover:bg-slate-50">Older →</a>{% else %}<span></span>{% endif %}
+        </nav>
         {% endif %}
+    </section>
 
-        <form method="post" class="field flex gap-2 px-4 py-3 border-t border-gray-100">
-            {% csrf_token %}
-            <input type="hidden" name="post_id" value="{{ post.id }}">
-            <input type="text" name="body" id="comment-{{ post.id }}" maxlength="100" required placeholder="Add a comment...">
-            <button class="text-indigo-600 font-semibold px-2 cursor-pointer" type="submit">Post</button>
-        </form>
-    </article>
-    {% empty %}
-    <div class="text-center text-gray-500 mt-16">
-        <p class="mb-4">No posts yet.</p>
-        <a class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg px-4 py-2" href="{% url 'create' %}">Share the first photo</a>
-    </div>
-    {% endfor %}
+    <aside class="hidden lg:block">
+        <div class="sticky top-24 rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 class="mb-4 text-sm font-semibold text-slate-500">Suggested for you</h2>
+            <ul class="space-y-4">
+                {% for person in suggestions %}
+                <li class="flex items-center gap-3" data-testid="suggestion">
+                    <a href="{% url 'profile' person.username %}">{% include 'partials/avatar.html' with person=person size='h-9 w-9 text-sm' %}</a>
+                    <div class="min-w-0 flex-1">
+                        <a href="{% url 'profile' person.username %}" class="block truncate text-sm font-semibold hover:underline">{{ person.username }}</a>
+                        <p class="text-xs text-slate-500">{{ person.post_count }} post{{ person.post_count|pluralize }}</p>
+                    </div>
+                    <form method="post" action="{% url 'follow' person.username %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="cursor-pointer text-sm font-semibold text-rose-500 hover:text-rose-600">Follow</button>
+                    </form>
+                </li>
+                {% empty %}
+                <li class="text-sm text-slate-500">You're following everyone. 🎉</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
 </div>
-
-<script>
-    const CSRF_TOKEN = "{{ csrf_token }}";
-    const RED = "{% static 'users/images/redlike.png' %}";
-    const WHITE = "{% static 'users/images/whitelike.png' %}";
-    document.querySelectorAll('.btn-like').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-            const body = new URLSearchParams({ post_id: btn.dataset.post });
-            const res = await fetch("{% url 'like' %}", {
-                method: 'POST',
-                headers: { 'X-CSRFToken': CSRF_TOKEN, 'X-Requested-With': 'XMLHttpRequest' },
-                body: body,
-            });
-            if (!res.ok) return;
-            const data = await res.json();
-            btn.querySelector('img').src = data.liked ? RED : WHITE;
-            btn.setAttribute('aria-pressed', data.liked);
-            const text = document.querySelector('.like-text[data-post="' + btn.dataset.post + '"]');
-            text.textContent = data.count ? (data.count + (data.count === 1 ? ' like' : ' likes')) : '';
-        });
-    });
-    document.querySelectorAll('.btn-share').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const url = location.origin + location.pathname + '#post-' + btn.dataset.post;
-            navigator.clipboard && navigator.clipboard.writeText(url);
-            btn.title = 'Link copied';
-        });
-    });
-</script>
 {% endblock %}

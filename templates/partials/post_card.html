@@ -1,0 +1,80 @@
+{% comment %}One post. Needs `post` (from posts_with_details), `liked_ids` and `comment_form` in the context.{% endcomment %}
+<article id="post-{{ post.id }}" data-testid="post-card" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <header class="flex items-center gap-3 px-4 py-3">
+        <a href="{% url 'profile' post.user.username %}">{% include 'partials/avatar.html' with person=post.user %}</a>
+        <div class="min-w-0 flex-1">
+            <a href="{% url 'profile' post.user.username %}" class="font-semibold hover:underline">{{ post.user.username }}</a>
+            <a href="{{ post.get_absolute_url }}" class="block text-xs text-slate-500 hover:underline">
+                <time datetime="{{ post.created|date:'c' }}" title="{{ post.created|date:'j M Y, H:i' }}">{{ post.created|timesince }} ago</time>
+            </a>
+        </div>
+        {% if post.user == user %}
+        <form method="post" action="{% url 'post_delete' post.id %}" onsubmit="return confirm('Delete this post?');">
+            {% csrf_token %}
+            <button type="submit" class="cursor-pointer text-sm text-slate-400 hover:text-red-600">Delete</button>
+        </form>
+        {% endif %}
+    </header>
+
+    <a href="{{ post.get_absolute_url }}">
+        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="max-h-[640px] w-full bg-slate-100 object-cover">
+    </a>
+
+    <div class="flex items-center gap-3 px-4 pt-3 text-slate-700">
+        {% if user.is_authenticated %}
+        <button type="button" class="btn-like cursor-pointer rounded-full p-1 hover:bg-slate-100" data-post="{{ post.id }}"
+                data-url="{% url 'like' post.id %}" aria-label="Like" aria-pressed="{% if post.id in liked_ids %}true{% else %}false{% endif %}">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+        </button>
+        <label for="comment-{{ post.id }}" class="cursor-pointer rounded-full p-1 hover:bg-slate-100" aria-label="Comment">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"/></svg>
+        </label>
+        {% else %}
+        <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="rounded-full p-1 hover:bg-slate-100" aria-label="Log in to like">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+        </a>
+        {% endif %}
+        <button type="button" class="btn-share cursor-pointer rounded-full p-1 hover:bg-slate-100" aria-label="Copy link to post"
+                data-link="{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+        </button>
+    </div>
+
+    <p class="like-text px-4 pt-1 text-sm font-semibold" data-post="{{ post.id }}">{{ post.like_count }} like{{ post.like_count|pluralize }}</p>
+
+    <div class="px-4 pt-1 pb-2">
+        <p class="font-semibold">{{ post.title }}</p>
+        {% if post.caption %}<p class="text-sm text-slate-700">{{ post.caption|linebreaksbr }}</p>{% endif %}
+    </div>
+
+    {% with comments=post.comments.all %}
+    {% if comments %}
+    <ul class="space-y-1 px-4 pb-2 text-sm">
+        {% for comment in comments %}
+        <li class="group flex items-start gap-2" data-testid="comment">
+            <p class="flex-1"><a href="{% url 'profile' comment.author.username %}" class="font-semibold hover:underline">{{ comment.author.username }}</a> {{ comment.body }}</p>
+            {% if user == comment.author or user == post.user %}
+            <form method="post" action="{% url 'comment_delete' comment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="cursor-pointer text-xs text-slate-400 opacity-0 group-hover:opacity-100 hover:text-red-600" aria-label="Delete comment">Delete</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'add_comment' post.id %}" class="flex gap-2 border-t border-slate-100 px-4 py-3">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="text" name="body" id="comment-{{ post.id }}" maxlength="300" required placeholder="Add a comment..."
+               class="flex-1 rounded-full bg-slate-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+        <button type="submit" class="cursor-pointer px-2 text-sm font-semibold text-rose-500 hover:text-rose-600">Post</button>
+    </form>
+    {% else %}
+    <p class="border-t border-slate-100 px-4 py-3 text-sm text-slate-500"><a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="font-semibold text-rose-500">Log in</a> to like and comment.</p>
+    {% endif %}
+</article>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Share your photos{% endblock %} · PhotoNest</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f59e0b'/%3E%3Cstop offset='1' stop-color='%23e11d48'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='17' r='7' fill='none' stroke='white' stroke-width='3'/%3E%3Ccircle cx='24' cy='8.5' r='2' fill='white'/%3E%3C/svg%3E">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Shared styling for Django-rendered form fields */
+        .form-field input:not([type="checkbox"]):not([type="file"]), .form-field textarea {
+            width: 100%; border: 1px solid #cbd5e1; border-radius: 0.6rem; padding: 0.6rem 0.8rem; background: #fff;
+        }
+        .form-field input[type="file"] { width: 100%; font-size: 0.9rem; }
+        .form-field input:focus, .form-field textarea:focus { outline: 2px solid #f43f5e; border-color: #f43f5e; }
+        .form-field .helptext, .form-field .helptext ul { font-size: 0.75rem; color: #64748b; }
+        .form-field .helptext ul { list-style: disc; padding-left: 1.1rem; }
+        .errorlist { color: #dc2626; font-size: 0.85rem; margin-top: 0.25rem; }
+        .btn-like[aria-pressed="true"] svg { fill: #f43f5e; color: #f43f5e; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+    <nav class="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex h-16 max-w-5xl items-center gap-4 px-4">
+            <a href="{% url 'feed' %}" class="flex shrink-0 items-center gap-2">
+                {% include 'partials/logo.html' %}
+                <span class="text-xl font-bold tracking-tight">Photo<span class="text-rose-500">Nest</span></span>
+            </a>
+
+            {% if user.is_authenticated %}
+            <form action="{% url 'search' %}" method="get" role="search" class="hidden flex-1 sm:block">
+                <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search people..." aria-label="Search people"
+                       class="w-full max-w-xs rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400">
+            </form>
+            <div class="ml-auto flex items-center gap-1 text-sm font-medium">
+                <a href="{% url 'feed' %}" class="rounded-lg px-3 py-2 hover:bg-slate-100">Feed</a>
+                <a href="{% url 'create' %}" class="rounded-lg bg-rose-500 px-3 py-2 text-white hover:bg-rose-600">+ New post</a>
+                <a href="{% url 'profile' user.username %}" class="ml-1 rounded-full" aria-label="My profile">
+                    {% include 'partials/avatar.html' with person=user size='h-9 w-9 text-sm' %}
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="cursor-pointer rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">Logout</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="ml-auto flex items-center gap-2 text-sm font-medium">
+                <a href="{% url 'login' %}" class="rounded-lg px-3 py-2 hover:bg-slate-100">Log in</a>
+                <a href="{% url 'register' %}" class="rounded-lg bg-rose-500 px-3 py-2 text-white hover:bg-rose-600">Sign up</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="mx-auto mt-4 max-w-xl space-y-2 px-4">
+        {% for message in messages %}
+        <div role="status" class="rounded-xl px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% elif message.tags == 'info' %}bg-sky-50 text-sky-800{% else %}bg-emerald-50 text-emerald-800{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="px-4 pb-16">
+        {% block body %}{% endblock %}
+    </main>
+
+    <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm text-white opacity-0 transition-opacity" role="status"></div>
+
+    <script>
+        // Like / unlike without reloading the page
+        document.addEventListener('click', async function (event) {
+            const likeButton = event.target.closest('.btn-like');
+            if (likeButton) {
+                const response = await fetch(likeButton.dataset.url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                likeButton.setAttribute('aria-pressed', data.liked);
+                document.querySelectorAll('.like-text[data-post="' + likeButton.dataset.post + '"]').forEach(function (el) {
+                    el.textContent = data.count + (data.count === 1 ? ' like' : ' likes');
+                });
+            }
+
+            // Copy a link to the post
+            const shareButton = event.target.closest('.btn-share');
+            if (shareButton) {
+                if (navigator.clipboard) navigator.clipboard.writeText(shareButton.dataset.link);
+                const toast = document.getElementById('toast');
+                toast.textContent = 'Link copied';
+                toast.classList.remove('opacity-0');
+                setTimeout(function () { toast.classList.add('opacity-0'); }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>
