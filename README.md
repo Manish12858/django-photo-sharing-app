@@ -1,4 +1,4 @@
-# PhotoNest – Photo sharing app built with Django
+# PhotoNest - Photo sharing app built with Django
 
 [![CI](https://github.com/Manish12858/photonest/actions/workflows/ci.yml/badge.svg)](https://github.com/Manish12858/photonest/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
@@ -123,6 +123,6 @@ self-follows), `Post` (with a many-to-many `liked_by`) and `Comment`.
 
 ## Author
 
-**Manish Kumar** – [GitHub](https://github.com/Manish12858) · manishkumarjamia@gmail.com
+**Manish Kumar** | [GitHub](https://github.com/Manish12858) | manishkumarjamia@gmail.com
 
 Icons are from [Heroicons](https://heroicons.com) (MIT). Demo photos are illustrations made for this project.
