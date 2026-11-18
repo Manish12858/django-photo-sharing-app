@@ -68,6 +68,7 @@ def profile(request, username):
             like_count=Count('liked_by', distinct=True),
             comment_count=Count('comments', distinct=True),
         )
+        .order_by('-created', '-id')
     )
     is_following = (
         request.user.is_authenticated

@@ -21,6 +21,8 @@ def posts_with_details():
         .select_related('user__profile')
         .prefetch_related(Prefetch('comments', queryset=Comment.objects.select_related('author')))
         .annotate(like_count=Count('liked_by', distinct=True))
+        # Meta.ordering is ignored on queries with annotate(Count(...)), so order explicitly
+        .order_by('-created', '-id')
     )
 
 
