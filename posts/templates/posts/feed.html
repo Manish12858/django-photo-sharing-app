@@ -1,6 +1,5 @@
 {% extends 'users/base.html' %}
 {% load static %}
-{% load mathfilters %}
 {% block title %}Feed · Photo App{% endblock %}
 {% block body %}
 <div class="max-w-lg mx-auto mt-8 space-y-8">
@@ -25,11 +24,7 @@
         </div>
 
         <div class="px-4 pt-2 text-sm font-semibold like-text" data-post="{{ post.id }}">
-            {% with count=post.liked_by.count %}
-            {% if count == 1 %}Liked by {{ post.liked_by.first }}
-            {% elif count > 1 %}Liked by {{ post.liked_by.first }} and {{ count|sub:1 }} other{{ count|sub:1|pluralize }}
-            {% endif %}
-            {% endwith %}
+            {% with count=post.liked_by.count %}{% if count %}{{ count }} like{{ count|pluralize }}{% endif %}{% endwith %}
         </div>
 
         <div class="px-4 py-2">

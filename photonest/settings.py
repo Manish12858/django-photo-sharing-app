@@ -1,5 +1,5 @@
 """
-Django settings for socialproject project.
+Django settings for the PhotoNest project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/5.2/topics/settings/
@@ -8,8 +8,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,7 +25,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -34,7 +35,6 @@ ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').sp
 INSTALLED_APPS = [
     'users',
     'posts',
-    'mathfilters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,12 +53,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'socialproject.urls'
+ROOT_URLCONF = 'photonest.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'socialproject.wsgi.application'
+WSGI_APPLICATION = 'photonest.wsgi.application'
 
 
 # Database
@@ -113,8 +113,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -128,10 +126,17 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'feed'
-LOGOUT_URL = 'logout'
 
+# Emails (password reset) are printed in the terminal during development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Uploaded images
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+MAX_UPLOAD_SIZE_MB = 5          # larger photos are rejected
+MAX_IMAGE_DIMENSION = 1080      # photos are resized so the longest side is at most this many pixels
+SERVE_MEDIA = os.environ.get('DJANGO_SERVE_MEDIA', 'True').lower() == 'true'
