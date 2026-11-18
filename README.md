@@ -1,6 +1,6 @@
 # PhotoNest – Photo sharing app built with Django
 
-[![CI](https://github.com/Manish12858/django-photo-sharing-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Manish12858/django-photo-sharing-app/actions/workflows/ci.yml)
+[![CI](https://github.com/Manish12858/photonest/actions/workflows/ci.yml/badge.svg)](https://github.com/Manish12858/photonest/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2%20%7C%206.0-092E20?logo=django&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
@@ -42,8 +42,8 @@ and kept adding to it: a follow system, profile pages, image resizing, tests and
 You need Python 3.10 or newer.
 
 ```bash
-git clone https://github.com/Manish12858/django-photo-sharing-app.git
-cd django-photo-sharing-app
+git clone https://github.com/Manish12858/photonest.git
+cd photonest
 
 python3 -m venv .venv
 source .venv/bin/activate        # on Windows: .venv\Scripts\activate
